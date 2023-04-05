@@ -16,6 +16,8 @@
 #include "pio/pio_spi.h"
 #include "spi.h"
 
+#define PIN_MRSTb 0
+
 #define PIN_MISO 4
 #define PIN_MOSI 3
 #define PIN_SCK 2
@@ -158,6 +160,34 @@ int main() {
 
     stdio_set_translate_crlf(&stdio_usb, false);
 
+    // Hold DUT in reset
+    gpio_init(PIN_MRSTb);
+    gpio_put(PIN_MRSTb, 0);
+    gpio_set_dir(PIN_MRSTb, GPIO_OUT);
+
+    // Initial menu to reset DUT and enter FlashROM mode
+    while (1) {
+        int c = getchar();
+        if (c == '0') {
+            printf("DUT MRST=0\r\n");
+            gpio_put(PIN_MRSTb, 0);
+        }
+        if (c == '1') {
+            printf("DUT MRST=1\r\n");
+            gpio_put(PIN_MRSTb, 1);
+        }
+        else if (c == '2') {
+            printf("Enabling flashrom\r\n");
+            break;
+        }
+        else {
+            printf("ASIC Menu:\r\n"
+                "0. DUT MRST=0\r\n"
+                "1. DUT MRST=1\r\n"
+                "2. Enter FlashROM mode\r\n"
+                "\r\n");
+        }
+    }
 
     // Initialize CS
     gpio_init(PIN_CS);
